@@ -1,0 +1,117 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "openAiName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure OpenAI Service resource."
+      }
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Location for the resource."
+      }
+    },
+    "sku": {
+      "type": "string",
+      "metadata": {
+        "description": "SKU for Azure OpenAI Service."
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags for the resource."
+      }
+    },
+    "publicNetworkAccess": {
+      "type": "string",
+      "defaultValue": "Enabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "Whether or not public network access is allowed for this resource. Value is 'Enabled' or 'Disabled'."
+      }
+    },
+    "disableLocalAuth": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Whether or not local authentication methods are disabled for the resource."
+      }
+    },
+    "modelName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the OpenAI model to deploy (e.g., gpt-4, text-davinci-003)."
+      }
+    },
+    "modelVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of the OpenAI model to deploy."
+      }
+    },
+    "modelDeploymentName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the deployment for the OpenAI model."
+      }
+    },
+    "modelCapacity": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Capacity for the OpenAI model deployment."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2023-05-01",
+      "name": "[parameters('openAiName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('sku')]"
+      },
+      "kind": "OpenAI",
+      "properties": {
+        "customSubDomainName": "[parameters('openAiName')]",
+        "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "disableLocalAuth": "[parameters('disableLocalAuth')]"
+      },
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts/deployments",
+      "apiVersion": "2023-05-01",
+      "name": "[concat(parameters('openAiName'), '/', parameters('modelDeploymentName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.CognitiveServices/accounts', parameters('openAiName'))]"
+      ],
+      "properties": {
+        "model": {
+          "format": "OpenAI",
+          "name": "[parameters('modelName')]",
+          "version": "[parameters('modelVersion')]"
+        },
+        "scale": {
+          "type": "Standard",
+          "capacity": "[parameters('modelCapacity')]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "openAiEndpoint": {
+      "type": "string",
+      "value": "[reference(parameters('openAiName')).endpoint]"
+    }
+  }
+}

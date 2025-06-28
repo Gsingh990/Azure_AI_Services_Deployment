@@ -1,0 +1,111 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "resourceGroupName": {
+      "value": "ai-services-rg"
+    },
+    "location": {
+      "value": "eastus"
+    },
+    "tags": {
+      "value": {
+        "environment": "dev",
+        "project": "ai-services"
+      }
+    },
+    "cognitiveServicesName": {
+      "value": "ai-cognitive-services"
+    },
+    "cognitiveServicesSku": {
+      "value": "S0"
+    },
+    "cognitiveServicesPublicNetworkAccess": {
+      "value": "Enabled"
+    },
+    "cognitiveServicesDisableLocalAuth": {
+      "value": false
+    },
+    "openAiName": {
+      "value": "ai-openai-service"
+    },
+    "openAiSku": {
+      "value": "S0"
+    },
+    "openAiPublicNetworkAccess": {
+      "value": "Enabled"
+    },
+    "openAiDisableLocalAuth": {
+      "value": false
+    },
+    "openAiModelName": {
+      "value": "gpt-4"
+    },
+    "openAiModelVersion": {
+      "value": "0613"
+    },
+    "openAiModelDeploymentName": {
+      "value": "gpt4-deployment"
+    },
+    "openAiModelCapacity": {
+      "value": 1
+    },
+    "mlWorkspaceName": {
+      "value": "ai-ml-workspace"
+    },
+    "mlWorkspaceSku": {
+      "value": "Basic"
+    },
+    "mlWorkspaceDescription": {
+      "value": "Azure Machine Learning Workspace for AI Services project."
+    },
+    "mlWorkspacePrimaryStorageAccountName": {
+      "value": "" 
+    },
+    "mlWorkspaceKeyVaultName": {
+      "value": "" 
+    },
+    "mlWorkspaceApplicationInsightsName": {
+      "value": "" 
+    },
+    "mlWorkspaceContainerRegistryName": {
+      "value": "" 
+    },
+    "mlWorkspaceEnablePublicReadAccess": {
+      "value": false
+    },
+    "mlWorkspaceVnetName": {
+      "value": "" 
+    },
+    "mlWorkspaceSubnetName": {
+      "value": "" 
+    },
+    "mlWorkspacePrivateDnsZoneName": {
+      "value": "privatelink.api.azureml.ms"
+    },
+    "botName": {
+      "value": "ai-chatbot"
+    },
+    "botDisplayName": {
+      "value": "AI Chatbot"
+    },
+    "appServicePlanSku": {
+      "value": "F1"
+    },
+    "appServicePlanKind": {
+      "value": "app"
+    },
+    "appServicePlanReserved": {
+      "value": false
+    },
+    "appServiceAlwaysOn": {
+      "value": false
+    },
+    "appServiceHttpsOnly": {
+      "value": true
+    },
+    "openAiApiVersion": {
+      "value": "2023-05-15"
+    }
+  }
+}

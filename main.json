@@ -1,0 +1,464 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "resourceGroupName": {
+      "type": "string",
+      "defaultValue": "ai-services-rg",
+      "metadata": {
+        "description": "Name of the resource group to create or use."
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags for all resources."
+      }
+    },
+    "cognitiveServicesName": {
+      "type": "string",
+      "defaultValue": "ai-cognitive-services",
+      "metadata": {
+        "description": "Name of the Azure AI Services (Cognitive Services) resource."
+      }
+    },
+    "cognitiveServicesSku": {
+      "type": "string",
+      "defaultValue": "S0",
+      "metadata": {
+        "description": "SKU for Azure AI Services (Cognitive Services)."
+      }
+    },
+    "cognitiveServicesPublicNetworkAccess": {
+      "type": "string",
+      "defaultValue": "Enabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "Whether or not public network access is allowed for Cognitive Services."
+      }
+    },
+    "cognitiveServicesDisableLocalAuth": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Whether or not local authentication methods are disabled for Cognitive Services."
+      }
+    },
+    "openAiName": {
+      "type": "string",
+      "defaultValue": "ai-openai-service",
+      "metadata": {
+        "description": "Name of the Azure OpenAI Service resource."
+      }
+    },
+    "openAiSku": {
+      "type": "string",
+      "defaultValue": "S0",
+      "metadata": {
+        "description": "SKU for Azure OpenAI Service."
+      }
+    },
+    "openAiPublicNetworkAccess": {
+      "type": "string",
+      "defaultValue": "Enabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "Whether or not public network access is allowed for Azure OpenAI Service."
+      }
+    },
+    "openAiDisableLocalAuth": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Whether or not local authentication methods are disabled for Azure OpenAI Service."
+      }
+    },
+    "openAiModelName": {
+      "type": "string",
+      "defaultValue": "gpt-4",
+      "metadata": {
+        "description": "Name of the OpenAI model to deploy (e.g., gpt-4, text-davinci-003)."
+      }
+    },
+    "openAiModelVersion": {
+      "type": "string",
+      "defaultValue": "0613",
+      "metadata": {
+        "description": "Version of the OpenAI model to deploy."
+      }
+    },
+    "openAiModelDeploymentName": {
+      "type": "string",
+      "defaultValue": "gpt4-deployment",
+      "metadata": {
+        "description": "Name of the deployment for the OpenAI model."
+      }
+    },
+    "openAiModelCapacity": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Capacity for the OpenAI model deployment."
+      }
+    },
+    "mlWorkspaceName": {
+      "type": "string",
+      "defaultValue": "ai-ml-workspace",
+      "metadata": {
+        "description": "Name of the Azure Machine Learning Workspace."
+      }
+    },
+    "mlWorkspaceSku": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "metadata": {
+        "description": "SKU for Azure Machine Learning Workspace (Basic or Enterprise)."
+      }
+    },
+    "mlWorkspaceDescription": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Description of the Azure Machine Learning Workspace."
+      }
+    },
+    "mlWorkspacePrimaryStorageAccountName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the primary storage account for the ML Workspace. If empty, a new one will be created."
+      }
+    },
+    "mlWorkspaceKeyVaultName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the Key Vault for the ML Workspace. If empty, a new one will be created."
+      }
+    },
+    "mlWorkspaceApplicationInsightsName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the Application Insights for the ML Workspace. If empty, a new one will be created."
+      }
+    },
+    "mlWorkspaceContainerRegistryName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the Container Registry for the ML Workspace. If empty, a new one will be created."
+      }
+    },
+    "mlWorkspaceEnablePublicReadAccess": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Whether to enable public read access for the ML Workspace."
+      }
+    },
+    "mlWorkspaceVnetName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the VNet for ML Workspace private endpoint. If empty, public endpoint will be used."
+      }
+    },
+    "mlWorkspaceSubnetName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the subnet for ML Workspace private endpoint. Required if mlWorkspaceVnetName is provided."
+      }
+    },
+    "mlWorkspacePrivateDnsZoneName": {
+      "type": "string",
+      "defaultValue": "privatelink.api.azureml.ms",
+      "metadata": {
+        "description": "Name of the Private DNS Zone for ML Workspace private endpoint."
+      }
+    },
+    "botName": {
+      "type": "string",
+      "defaultValue": "ai-chatbot",
+      "metadata": {
+        "description": "Name of the Azure Bot Service."
+      }
+    },
+    "botDisplayName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Display name for the Azure Bot Service. If empty, botName will be used."
+      }
+    },
+    "appServicePlanSku": {
+      "type": "string",
+      "defaultValue": "F1",
+      "metadata": {
+        "description": "SKU for the App Service Plan (e.g., F1, B1, S1)."
+      }
+    },
+    "appServicePlanKind": {
+      "type": "string",
+      "defaultValue": "app",
+      "metadata": {
+        "description": "Kind of App Service Plan (e.g., app, linux)."
+      }
+    },
+    "appServicePlanReserved": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "If the App Service Plan is for Linux, this must be true."
+      }
+    },
+    "appServiceAlwaysOn": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable Always On for the App Service."
+      }
+    },
+    "appServiceHttpsOnly": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable HTTPS Only for the App Service."
+      }
+    },
+    "openAiApiVersion": {
+      "type": "string",
+      "defaultValue": "2023-05-15",
+      "metadata": {
+        "description": "The API version for the OpenAI service."
+      }
+    }
+  },
+  "variables": {
+    "modulesPath": "modules"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2021-04-01",
+      "name": "[parameters('resourceGroupName')]",
+      "location": "[parameters('location')]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2021-04-01",
+      "name": "cognitiveServicesDeployment",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(deployment().properties.templateLink.uri, concat(variables('modulesPath'), '/azure_ai_services/azure_ai_services.json'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "cognitiveServicesName": {
+            "value": "[parameters('cognitiveServicesName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "sku": {
+            "value": "[parameters('cognitiveServicesSku')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "publicNetworkAccess": {
+            "value": "[parameters('cognitiveServicesPublicNetworkAccess')]"
+          },
+          "disableLocalAuth": {
+            "value": "[parameters('cognitiveServicesDisableLocalAuth')]"
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2021-04-01",
+      "name": "openAiDeployment",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(deployment().properties.templateLink.uri, concat(variables('modulesPath'), '/azure_openai/azure_openai.json'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "openAiName": {
+            "value": "[parameters('openAiName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "sku": {
+            "value": "[parameters('openAiSku')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "publicNetworkAccess": {
+            "value": "[parameters('openAiPublicNetworkAccess')]"
+          },
+          "disableLocalAuth": {
+            "value": "[parameters('openAiDisableLocalAuth')]"
+          },
+          "modelName": {
+            "value": "[parameters('openAiModelName')]"
+          },
+          "modelVersion": {
+            "value": "[parameters('openAiModelVersion')]"
+          },
+          "modelDeploymentName": {
+            "value": "[parameters('openAiModelDeploymentName')]"
+          },
+          "modelCapacity": {
+            "value": "[parameters('openAiModelCapacity')]"
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2021-04-01",
+      "name": "mlWorkspaceDeployment",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(deployment().properties.templateLink.uri, concat(variables('modulesPath'), '/machine_learning/machine_learning.json'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "mlWorkspaceName": {
+            "value": "[parameters('mlWorkspaceName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "sku": {
+            "value": "[parameters('mlWorkspaceSku')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "description": {
+            "value": "[parameters('mlWorkspaceDescription')]"
+          },
+          "primaryStorageAccountName": {
+            "value": "[parameters('mlWorkspacePrimaryStorageAccountName')]"
+          },
+          "keyVaultName": {
+            "value": "[parameters('mlWorkspaceKeyVaultName')]"
+          },
+          "applicationInsightsName": {
+            "value": "[parameters('mlWorkspaceApplicationInsightsName')]"
+          },
+          "containerRegistryName": {
+            "value": "[parameters('mlWorkspaceContainerRegistryName')]"
+          },
+          "enablePublicReadAccess": {
+            "value": "[parameters('mlWorkspaceEnablePublicReadAccess')]"
+          },
+          "vnetName": {
+            "value": "[parameters('mlWorkspaceVnetName')]"
+          },
+          "subnetName": {
+            "value": "[parameters('mlWorkspaceSubnetName')]"
+          },
+          "privateDnsZoneName": {
+            "value": "[parameters('mlWorkspacePrivateDnsZoneName')]"
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2021-04-01",
+      "name": "chatbotDeployment",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(deployment().properties.templateLink.uri, concat(variables('modulesPath'), '/azure_chatbot/azure_chatbot.json'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "botName": {
+            "value": "[parameters('botName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "appServicePlanSku": {
+            "value": "[parameters('appServicePlanSku')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "botDisplayName": {
+            "value": "[parameters('botDisplayName')]"
+          },
+          "appServicePlanKind": {
+            "value": "[parameters('appServicePlanKind')]"
+          },
+          "appServicePlanReserved": {
+            "value": "[parameters('appServicePlanReserved')]"
+          },
+          "appServiceAlwaysOn": {
+            "value": "[parameters('appServiceAlwaysOn')]"
+          },
+          "appServiceHttpsOnly": {
+            "value": "[parameters('appServiceHttpsOnly')]"
+          },
+          "openAiEndpoint": {
+            "value": "[reference('openAiDeployment').outputs.openAiEndpoint.value]"
+          },
+          "openAiApiKey": {
+            "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', parameters('openAiName')), '2023-05-01').key1]"
+          },
+          "openAiDeploymentName": {
+            "value": "[parameters('openAiModelDeploymentName')]"
+          },
+          "openAiApiVersion": {
+            "value": "[parameters('openAiApiVersion')]"
+          }
+        }
+      },
+      "dependsOn": [
+        "openAiDeployment",
+        "[resourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    }
+  ],
+  "outputs": {}
+}

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "cognitiveServicesName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure AI Services (Cognitive Services) resource."
+      }
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Location for the resource."
+      }
+    },
+    "sku": {
+      "type": "string",
+      "metadata": {
+        "description": "SKU for Azure AI Services (Cognitive Services)."
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags for the resource."
+      }
+    },
+    "publicNetworkAccess": {
+      "type": "string",
+      "defaultValue": "Enabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "Whether or not public network access is allowed for this resource. Value is 'Enabled' or 'Disabled'."
+      }
+    },
+    "disableLocalAuth": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Whether or not local authentication methods are disabled for the resource."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2023-05-01",
+      "name": "[parameters('cognitiveServicesName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('sku')]"
+      },
+      "kind": "CognitiveServices",
+      "properties": {
+        "customSubDomainName": "[parameters('cognitiveServicesName')]",
+        "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "disableLocalAuth": "[parameters('disableLocalAuth')]"
+      },
+      "tags": "[parameters('tags')]"
+    }
+  ],
+  "outputs": {
+    "cognitiveServicesEndpoint": {
+      "type": "string",
+      "value": "[reference(parameters('cognitiveServicesName')).endpoint]"
+    }
+  }
+}

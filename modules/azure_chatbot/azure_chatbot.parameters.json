@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "botName": {
+      "value": "ai-chatbot"
+    },
+    "location": {
+      "value": "eastus"
+    },
+    "appServicePlanSku": {
+      "value": "F1"
+    },
+    "tags": {
+      "value": {
+        "environment": "dev"
+      }
+    },
+    "botDisplayName": {
+      "value": "AI Chatbot"
+    },
+    "appServicePlanKind": {
+      "value": "app"
+    },
+    "appServicePlanReserved": {
+      "value": false
+    },
+    "appServiceAlwaysOn": {
+      "value": false
+    },
+    "appServiceHttpsOnly": {
+      "value": true
+    },
+    "openAiEndpoint": {
+      "value": "" 
+    },
+    "openAiApiKey": {
+      "value": "" 
+    },
+    "openAiDeploymentName": {
+      "value": "gpt4-deployment"
+    },
+    "openAiApiVersion": {
+      "value": "2023-05-15"
+    }
+  }
+}

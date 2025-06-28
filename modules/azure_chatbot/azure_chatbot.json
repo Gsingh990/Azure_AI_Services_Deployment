@@ -1,0 +1,176 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "botName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Bot Service."
+      }
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Location for the resources."
+      }
+    },
+    "appServicePlanSku": {
+      "type": "string",
+      "metadata": {
+        "description": "SKU for the App Service Plan (e.g., F1, B1, S1)."
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags for the resources."
+      }
+    },
+    "botDisplayName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Display name for the Azure Bot Service. If empty, botName will be used."
+      }
+    },
+    "appServicePlanKind": {
+      "type": "string",
+      "defaultValue": "app",
+      "metadata": {
+        "description": "Kind of App Service Plan (e.g., app, linux)."
+      }
+    },
+    "appServicePlanReserved": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "If the App Service Plan is for Linux, this must be true."
+      }
+    },
+    "appServiceAlwaysOn": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable Always On for the App Service."
+      }
+    },
+    "appServiceHttpsOnly": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable HTTPS Only for the App Service."
+      }
+    },
+    "openAiEndpoint": {
+      "type": "string",
+      "metadata": {
+        "description": "The endpoint URL for the Azure OpenAI Service."
+      }
+    },
+    "openAiApiKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The API key for the Azure OpenAI Service."
+      }
+    },
+    "openAiDeploymentName": {
+      "type": "string",
+      "metadata": {
+        "description": "The deployment name of the OpenAI model to use."
+      }
+    },
+    "openAiApiVersion": {
+      "type": "string",
+      "defaultValue": "2023-05-15",
+      "metadata": {
+        "description": "The API version for the OpenAI service."
+      }
+    }
+  },
+  "variables": {
+    "appServicePlanName": "[concat(parameters('botName'), 'plan')]",
+    "appServiceName": "[concat(parameters('botName'), 'app')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2021-03-01",
+      "name": "[variables('appServicePlanName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('appServicePlanSku')]"
+      },
+      "kind": "[parameters('appServicePlanKind')]",
+      "properties": {
+        "reserved": "[parameters('appServicePlanReserved')]"
+      },
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2021-03-01",
+      "name": "[variables('appServiceName')]",
+      "location": "[parameters('location')]",
+      "kind": "app",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "httpsOnly": "[parameters('appServiceHttpsOnly')]",
+        "siteConfig": {
+          "alwaysOn": "[parameters('appServiceAlwaysOn')]",
+          "appSettings": [
+            {
+              "name": "OpenAiEndpoint",
+              "value": "[parameters('openAiEndpoint')]"
+            },
+            {
+              "name": "OpenAiApiKey",
+              "value": "[parameters('openAiApiKey')]"
+            },
+            {
+              "name": "OpenAiDeploymentName",
+              "value": "[parameters('openAiDeploymentName')]"
+            },
+            {
+              "name": "OpenAiApiVersion",
+              "value": "[parameters('openAiApiVersion')]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+      ],
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "type": "Microsoft.BotService/botServices",
+      "apiVersion": "2021-05-01-preview",
+      "name": "[parameters('botName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "F0"
+      },
+      "kind": "Bot",
+      "properties": {
+        "displayName": "[if(empty(parameters('botDisplayName')), parameters('botName'), parameters('botDisplayName'))]",
+        "endpoint": "[concat('https://', variables('appServiceName'), '.azurewebsites.net/api/messages')]",
+        "msaAppId": "[guid(parameters('botName'))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('appServiceName'))]"
+      ],
+      "tags": "[parameters('tags')]"
+    }
+  ],
+  "outputs": {
+    "botServiceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.BotService/botServices', parameters('botName'))]"
+    },
+    "botAppServiceUrl": {
+      "type": "string",
+      "value": "[concat('https://', variables('appServiceName'), '.azurewebsites.net')]"
+    }
+  }
+}

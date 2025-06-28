@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "openAiName": {
+      "value": "ai-openai-service"
+    },
+    "location": {
+      "value": "eastus"
+    },
+    "sku": {
+      "value": "S0"
+    },
+    "tags": {
+      "value": {
+        "environment": "dev"
+      }
+    },
+    "publicNetworkAccess": {
+      "value": "Enabled"
+    },
+    "disableLocalAuth": {
+      "value": false
+    },
+    "modelName": {
+      "value": "gpt-4"
+    },
+    "modelVersion": {
+      "value": "0613"
+    },
+    "modelDeploymentName": {
+      "value": "gpt4-deployment"
+    },
+    "modelCapacity": {
+      "value": 1
+    }
+  }
+}

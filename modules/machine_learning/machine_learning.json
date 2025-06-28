@@ -1,0 +1,236 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "mlWorkspaceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Machine Learning Workspace."
+      }
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Location for the resource."
+      }
+    },
+    "sku": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "Enterprise"
+      ],
+      "metadata": {
+        "description": "SKU for Azure Machine Learning Workspace (Basic or Enterprise)."
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags for the resource."
+      }
+    },
+    "description": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Description of the Azure Machine Learning Workspace."
+      }
+    },
+    "primaryStorageAccountName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the primary storage account for the ML Workspace. If empty, a new one will be created."
+      }
+    },
+    "keyVaultName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the Key Vault for the ML Workspace. If empty, a new one will be created."
+      }
+    },
+    "applicationInsightsName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the Application Insights for the ML Workspace. If empty, a new one will be created."
+      }
+    },
+    "containerRegistryName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the Container Registry for the ML Workspace. If empty, a new one will be created."
+      }
+    },
+    "enablePublicReadAccess": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Whether to enable public read access for the ML Workspace."
+      }
+    },
+    "vnetName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the VNet for private endpoint. If empty, public endpoint will be used."
+      }
+    },
+    "subnetName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the subnet for private endpoint. Required if vnetName is provided."
+      }
+    },
+    "privateDnsZoneName": {
+      "type": "string",
+      "defaultValue": "privatelink.api.azureml.ms",
+      "metadata": {
+        "description": "Name of the Private DNS Zone for ML Workspace private endpoint."
+      }
+    }
+  },
+  "variables": {
+    "storageAccountName": "[if(empty(parameters('primaryStorageAccountName')), concat(parameters('mlWorkspaceName'), 'sa'), parameters('primaryStorageAccountName'))]",
+    "keyVaultName": "[if(empty(parameters('keyVaultName')), concat(parameters('mlWorkspaceName'), 'kv'), parameters('keyVaultName'))]",
+    "applicationInsightsName": "[if(empty(parameters('applicationInsightsName')), concat(parameters('mlWorkspaceName'), 'ai'), parameters('applicationInsightsName'))]",
+    "containerRegistryName": "[if(empty(parameters('containerRegistryName')), concat(parameters('mlWorkspaceName'), 'cr'), parameters('containerRegistryName'))]",
+    "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetName'))]"
+  },
+  "resources": [
+    {
+      "condition": "[empty(parameters('primaryStorageAccountName'))]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-09-01",
+      "name": "[variables('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "condition": "[empty(parameters('keyVaultName'))]",
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2021-11-01-preview",
+      "name": "[variables('keyVaultName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "tenantId": "[subscription().tenantId]",
+        "sku": {
+          "family": "A",
+          "name": "standard"
+        },
+        "enabledForDiskEncryption": true,
+        "enabledForTemplateDeployment": true
+      },
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "condition": "[empty(parameters('applicationInsightsName'))]",
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('applicationInsightsName')]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web"
+      },
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "condition": "[empty(parameters('containerRegistryName'))]",
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2021-09-01",
+      "name": "[variables('containerRegistryName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Basic"
+      },
+      "properties": {
+        "adminUserEnabled": true
+      },
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "type": "Microsoft.MachineLearningServices/workspaces",
+      "apiVersion": "2021-07-01",
+      "name": "[parameters('mlWorkspaceName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('sku')]"
+      },
+      "properties": {
+        "friendlyName": "[parameters('mlWorkspaceName')]",
+        "description": "[parameters('description')]",
+        "storageAccount": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "keyVault": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+        "applicationInsights": "[resourceId('Microsoft.Insights/components', variables('applicationInsightsName'))]",
+        "containerRegistry": "[resourceId('Microsoft.ContainerRegistry/registries', variables('containerRegistryName'))]",
+        "publicNetworkAccess": "[if(empty(parameters('vnetName')), 'Enabled', 'Disabled')]",
+        "allowPublicAccessWhenAadAuthOnly": "[parameters('enablePublicReadAccess')]"
+      },
+      "tags": "[parameters('tags')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+        "[resourceId('Microsoft.Insights/components', variables('applicationInsightsName'))]",
+        "[resourceId('Microsoft.ContainerRegistry/registries', variables('containerRegistryName'))]"
+      ]
+    },
+    {
+      "condition": "[not(empty(parameters('vnetName')))]",
+      "type": "Microsoft.Network/privateEndpoints",
+      "apiVersion": "2021-05-01",
+      "name": "[concat(parameters('mlWorkspaceName'), '-pe')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "privateLinkServiceConnections": [
+          {
+            "name": "[concat(parameters('mlWorkspaceName'), '-pls-connection')]",
+            "privateLinkServiceId": "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('mlWorkspaceName'))]",
+            "groupIds": [
+              "amlworkspace"
+            ]
+          }
+        ],
+        "subnet": {
+          "id": "[variables('subnetId')]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('mlWorkspaceName'))]"
+      ],
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "condition": "[not(empty(parameters('vnetName')))]",
+      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+      "apiVersion": "2020-06-01",
+      "name": "[concat(parameters('privateDnsZoneName'), '/link-to-', parameters('vnetName'))]",
+      "location": "global",
+      "properties": {
+        "registrationEnabled": false,
+        "virtualNetwork": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateEndpoints', concat(parameters('mlWorkspaceName'), '-pe'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "mlWorkspaceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('mlWorkspaceName'))]"
+    }
+  }
+}
