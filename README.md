@@ -71,3 +71,62 @@ The `parameters.json` file is the primary place to customize your deployment. Ke
 *   **Azure OpenAI Access:** Ensure your subscription has the necessary approvals for Azure OpenAI and the specific models you intend to deploy.
 *   **Chatbot Implementation:** The `azure_chatbot` module provisions the Azure infrastructure for the bot. You will still need to deploy your bot's code (e.g., a C# or Node.js bot application) to the created App Service. The application settings for OpenAI connectivity are provided, which your bot code can consume.
 *   **Private Endpoints:** For Machine Learning Workspace, if you specify `mlWorkspaceVnetName` and `mlWorkspaceSubnetName`, a private endpoint will be created, and public network access will be disabled for the workspace.
+
+## Azure DevOps Pipeline
+
+An Azure DevOps YAML pipeline (`azure-pipelines.yml`) is provided to automate the deployment of these ARM templates. This pipeline is designed to be triggered manually or via a REST API.
+
+### Pipeline Setup
+
+1.  **Import Pipeline:** In your Azure DevOps project, navigate to **Pipelines** -> **New pipeline**. Select **Azure Repos Git** (or your repository type), choose your repository, and then select **Existing Azure Pipelines YAML file**. Point to `azure-pipelines.yml` in the root of this repository.
+2.  **Service Connection:** Ensure you have an Azure Resource Manager service connection configured in your Azure DevOps project. The pipeline expects a service connection named `AzureRM-ServiceConnection`. This service connection must have sufficient permissions to deploy resources to your Azure subscription.
+3.  **Pipeline Variables:** The pipeline uses a variable `$(SubscriptionId)`. You should define this as a pipeline variable or ensure your service connection is configured to provide it.
+
+### Pipeline Parameters
+
+The pipeline defines several parameters that map to the ARM template parameters, allowing you to customize the deployment when triggering the pipeline. These include:
+
+*   `resourceGroupName`
+*   `location`
+*   `environment` (for tagging)
+*   `cognitiveServicesName`
+*   `openAiName`
+*   `openAiModelName`
+*   `openAiModelVersion`
+*   `openAiModelDeploymentName`
+*   `mlWorkspaceName`
+*   `botName`
+
+### Triggering from ServiceNow (REST API)
+
+Azure DevOps pipelines can be triggered programmatically using the Azure DevOps REST API. ServiceNow can be configured to make a REST API call to initiate a pipeline run.
+
+**1. Obtain Personal Access Token (PAT):**
+    You will need a Personal Access Token (PAT) from Azure DevOps with sufficient permissions to queue builds (e.g., `Build (Read & execute)` scope). Store this PAT securely in ServiceNow.
+
+**2. Construct the REST API Request:**
+    The API endpoint for queuing a build is:
+    `POST https://dev.azure.com/{organization}/{project}/_apis/build/builds?api-version=7.1`
+
+    **Headers:**
+    *   `Content-Type: application/json`
+    *   `Authorization: Basic {base64EncodedPat}` (where `base64EncodedPat` is your PAT encoded in Base64)
+
+    **Request Body (JSON):**
+    You can pass pipeline parameters in the request body. The `definition.id` refers to the ID of your pipeline in Azure DevOps.
+
+    ```json
+    {
+      "definition": {
+        "id": [Your_Pipeline_ID]
+      },
+      "parameters": "{\"resourceGroupName\":\"my-custom-rg\", \"location\":\"westus2\", \"environment\":\"prod\"}"
+    }
+    ```
+    *   Replace `[Your_Pipeline_ID]` with the actual ID of your pipeline in Azure DevOps.
+    *   The `parameters` field is a stringified JSON object. Ensure proper escaping of double quotes within this string.
+
+**3. ServiceNow Configuration:**
+    In ServiceNow, you would typically use a REST Message or Scripted REST API to construct and send this HTTP POST request. You would map fields from your ServiceNow incident, change request, or catalog item to the pipeline parameters in the request body.
+
+This setup allows for automated, controlled deployments of your Azure AI services directly from your IT Service Management (ITSM) platform.

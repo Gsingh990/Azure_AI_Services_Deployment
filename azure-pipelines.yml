@@ -1,0 +1,82 @@
+# azure-pipelines.yml
+
+trigger:
+  - none # This pipeline will be triggered manually or via API
+
+parameters:
+  - name: resourceGroupName
+    displayName: Resource Group Name
+    type: string
+    default: ai-services-rg
+  - name: location
+    displayName: Azure Region
+    type: string
+    default: eastus
+  - name: environment
+    displayName: Environment (e.g., dev, prod)
+    type: string
+    default: dev
+  - name: cognitiveServicesName
+    displayName: Cognitive Services Name
+    type: string
+    default: ai-cognitive-services
+  - name: openAiName
+    displayName: OpenAI Service Name
+    type: string
+    default: ai-openai-service
+  - name: openAiModelName
+    displayName: OpenAI Model Name
+    type: string
+    default: gpt-4
+  - name: openAiModelVersion
+    displayName: OpenAI Model Version
+    type: string
+    default: 0613
+  - name: openAiModelDeploymentName
+    displayName: OpenAI Model Deployment Name
+    type: string
+    default: gpt4-deployment
+  - name: mlWorkspaceName
+    displayName: ML Workspace Name
+    type: string
+    default: ai-ml-workspace
+  - name: botName
+    displayName: Chatbot Name
+    type: string
+    default: ai-chatbot
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: DeployAIResources
+    displayName: Deploy AI Resources
+    jobs:
+      - job: Deploy
+        displayName: Deploy ARM Template
+        steps:
+          - task: AzureResourceManagerTemplateDeployment@3
+            displayName: 'Deploy AI Services ARM Template'
+            inputs:
+              deploymentScope: 'Resource Group'
+              azureResourceManagerConnection: 'AzureRM-ServiceConnection' # Ensure this Service Connection exists in Azure DevOps
+              subscriptionId: '$(SubscriptionId)' # Pipeline variable or define as parameter
+              action: 'Create Or Update Resource Group'
+              resourceGroupName: '${{ parameters.resourceGroupName }}'
+              location: '${{ parameters.location }}'
+              templateLocation: 'Linked artifact'
+              csmFile: 'main.json'
+              csmParametersFile: 'parameters.json'
+              overrideParameters: >
+                -location "${{ parameters.location }}"
+                -tags "{"environment":"${{ parameters.environment }}"}"
+                -cognitiveServicesName "${{ parameters.cognitiveServicesName }}"
+                -openAiName "${{ parameters.openAiName }}"
+                -openAiModelName "${{ parameters.openAiModelName }}"
+                -openAiModelVersion "${{ parameters.openAiModelVersion }}"
+                -openAiModelDeploymentName "${{ parameters.openAiModelDeploymentName }}"
+                -mlWorkspaceName "${{ parameters.mlWorkspaceName }}"
+                -botName "${{ parameters.botName }}"
+            # Note: The 'parameters.json' will provide defaults, and 'overrideParameters' will override them.
+            # Ensure all necessary parameters from main.json are either in parameters.json or overridden here.
+
