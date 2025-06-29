@@ -6,7 +6,7 @@ This project provides a modular Azure Resource Manager (ARM) template solution f
 
 This solution deploys the following key Azure AI components:
 
-*   **Azure AI Services (Cognitive Services):** A unified endpoint for various cognitive capabilities like Text Analytics and Document Intelligence.
+*   **Azure AI Services (Cognitive Services):** A unified endpoint for various cognitive capabilities like Text Analytics, Document Intelligence, **Vision**, and more.
 *   **Azure OpenAI Service:** Provides access to OpenAI's powerful language models (e.g., GPT-4) hosted on Azure.
 *   **Azure Machine Learning Workspace:** A centralized environment for managing the end-to-end machine learning lifecycle.
 *   **Azure Chatbot:** An Azure Bot Service instance with an associated App Service, configured to interact with the deployed Azure OpenAI Service for conversational AI capabilities.
@@ -61,7 +61,7 @@ The `parameters.json` file is the primary place to customize your deployment. Ke
 
 ## Module Breakdown
 
-*   **`modules/azure_ai_services/`**: Deploys an Azure AI Services (Cognitive Services) account, providing access to Text Analytics, Document Intelligence, and other cognitive APIs.
+*   **`modules/azure_ai_services/`**: Deploys an Azure AI Services (Cognitive Services) account, providing access to Text Analytics, Document Intelligence, **Vision**, and other cognitive APIs.
 *   **`modules/azure_openai/`**: Deploys an Azure OpenAI Service account and a specified model deployment (e.g., `gpt-4`).
 *   **`modules/machine_learning/`**: Deploys an Azure Machine Learning Workspace along with its dependent resources (Storage Account, Key Vault, Application Insights, Container Registry). Supports private endpoint integration.
 *   **`modules/azure_chatbot/`**: Deploys an Azure Bot Service, an App Service Plan, and an App Service. The App Service is configured with application settings to connect to the Azure OpenAI endpoint and API key, enabling the bot to use the deployed LLM.
